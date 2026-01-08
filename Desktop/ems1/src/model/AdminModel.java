@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AdminModel {
 
@@ -387,4 +390,61 @@ public static synchronized boolean removeLeaveRequestFromQueue(LeaveRequest targ
 
     return removed;
 }
+// ==============================
+    // In-memory tasks & weekly remarks per employee (shared across app)
+    // ==============================
+    private static final Map<String, List<String>> TASKS_BY_USER = new HashMap<>();
+    private static final Map<String, String> REMARKS_BY_USER = new HashMap<>();
+
+    /**
+     * Save (overwrite) tasks + weekly remarks for a given username.
+     * This is purely in-memory and shared across all AdminModel instances.
+     */
+    public static synchronized void saveTasksAndRemarks(String username, List<String> tasks, String remarks) {
+        if (username == null || username.trim().isEmpty()) {
+            return;
+        }
+        String key = username.trim().toLowerCase();
+
+        // Normalize tasks list (defensive copy, trim, drop empties)
+        List<String> copy = new ArrayList<>();
+        if (tasks != null) {
+            for (String t : tasks) {
+                if (t == null) continue;
+                String tt = t.trim();
+                if (!tt.isEmpty()) copy.add(tt);
+            }
+        }
+        TASKS_BY_USER.put(key, copy);
+
+        String r = (remarks == null) ? "" : remarks.trim();
+        REMARKS_BY_USER.put(key, r);
+    }
+
+    /**
+     * Get a copy of tasks for a username; never returns null.
+     */
+    public static synchronized List<String> getTasks(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        String key = username.trim().toLowerCase();
+        List<String> stored = TASKS_BY_USER.get(key);
+        if (stored == null) {
+            return Collections.emptyList();
+        }
+        return new ArrayList<>(stored);
+    }
+
+    /**
+     * Get weekly remarks for a username; never returns null (may be empty).
+     */
+    public static synchronized String getWeeklyRemarks(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return "";
+        }
+        String key = username.trim().toLowerCase();
+        String r = REMARKS_BY_USER.get(key);
+        return (r == null) ? "" : r;
+    }
 }

@@ -4,13 +4,22 @@
  */
 package view;
 
+import model.AdminModel;
+
 /**
  *
  * @author roshitlamichhane
  */
 public class AssignTaskDialog extends javax.swing.JDialog {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AssignTaskDialog.class.getName());
+
+    // ==========================
+    // Backend state (GUI-safe)
+    // ==========================
+    private final javax.swing.DefaultListModel<String> taskModel = new javax.swing.DefaultListModel<>();
+    private boolean saved = false;
+    private String employeeUsername;
 
     /**
      * Creates new form AssignTaskDialog
@@ -18,6 +27,8 @@ public class AssignTaskDialog extends javax.swing.JDialog {
     public AssignTaskDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        // NetBeans-safe: wiring model after initComponents
+        taskList.setModel(taskModel);
     }
 
     /**
@@ -161,52 +172,99 @@ public class AssignTaskDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddTaskActionPerformed
-        // TODO add your handling code here:
+        if (employeeUsername == null || employeeUsername.trim().isEmpty()) {
+            // still allow adding tasks even if employee not set; no dialog popup to keep it simple
+        }
+        String text = txtTask.getText();
+        if (text != null) {
+            text = text.trim();
+        }
+        if (text == null || text.isEmpty()) {
+            return; // nothing to add
+        }
+        taskModel.addElement(text);
+        txtTask.setText("");
+        txtTask.requestFocusInWindow();
     }//GEN-LAST:event_btnAddTaskActionPerformed
 
     private void btnRemoveTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRemoveTaskActionPerformed
-        // TODO add your handling code here:
+        int idx = taskList.getSelectedIndex();
+        if (idx >= 0) {
+            taskModel.remove(idx);
+        }
     }//GEN-LAST:event_btnRemoveTaskActionPerformed
 
     private void remarksBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remarksBtnActionPerformed
-        // TODO add your handling code here:
+        this.saved = true;
+        dispose();
     }//GEN-LAST:event_remarksBtnActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+    // ==========================
+    // Public API for callers
+    // ==========================
+
+    public void setEmployee(String username) {
+        this.employeeUsername = (username == null) ? null : username.trim();
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
+            java.lang.reflect.Field f = getClass().getDeclaredField("lblEmployeeName");
+            Object obj = f.get(this);
+            if (obj instanceof javax.swing.JLabel) {
+                javax.swing.JLabel lbl = (javax.swing.JLabel) obj;
+                if (this.employeeUsername != null && !this.employeeUsername.isEmpty()) {
+                    lbl.setText(this.employeeUsername);
+                } else {
+                    lbl.setText("");
                 }
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (NoSuchFieldException | SecurityException | IllegalAccessException ignore) {
+            // label is optional; safely ignore
         }
-        //</editor-fold>
+    }
 
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                AssignTaskDialog dialog = new AssignTaskDialog(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
+    public boolean isSaved() {
+        return saved;
+    }
+
+    public java.util.List<String> getTasks() {
+        java.util.List<String> result = new java.util.ArrayList<>();
+        for (int i = 0; i < taskModel.size(); i++) {
+            String s = taskModel.getElementAt(i);
+            if (s != null && !s.trim().isEmpty()) {
+                result.add(s.trim());
             }
-        });
+        }
+        return result;
+    }
+
+    public String getWeeklyRemarks() {
+        String text = txtWeeklyReview.getText();
+        return text == null ? "" : text.trim();
+    }
+
+    public String getEmployeeUsername() {
+        return employeeUsername;
+    }
+
+    /**
+     * Optional helper: prefill dialog from AdminModel storage.
+     */
+    public void loadExistingData(AdminModel model) {
+        if (employeeUsername == null || employeeUsername.trim().isEmpty()) {
+            return;
+        }
+        String key = employeeUsername.trim();
+        java.util.List<String> tasks = AdminModel.getTasks(key);
+        String remarks = AdminModel.getWeeklyRemarks(key);
+
+        taskModel.clear();
+        if (tasks != null) {
+            for (String t : tasks) {
+                if (t != null && !t.trim().isEmpty()) {
+                    taskModel.addElement(t.trim());
+                }
+            }
+        }
+        txtWeeklyReview.setText(remarks == null ? "" : remarks);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

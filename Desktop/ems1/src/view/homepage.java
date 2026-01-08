@@ -24,6 +24,10 @@ public class homepage extends javax.swing.JFrame {
     // Leave approval (pending request)
     // ==============================
     private LeaveRequest currentPendingLeave;
+
+    // Shared AdminModel instance for this frame (NetBeans GUI safe)
+    private final AdminModel adminModel = new AdminModel();
+
     public void refreshAttendanceTable() {
         DefaultTableModel tm = (DefaultTableModel) jTable1.getModel();
         tm.setRowCount(0); // clear old rows
@@ -95,6 +99,7 @@ public class homepage extends javax.swing.JFrame {
      * Creates new form homepage
      */
     public homepage() {
+       
         initComponents();
     
             // Scale employee profile images to fit their labels (prevents cropping)
@@ -103,6 +108,8 @@ public class homepage extends javax.swing.JFrame {
         setScaledIcon(jLabel9, "/images/rabin.png");
         setScaledIcon(jLabel11, "/images/sanskar.png");
         setScaledIcon(jLabel13, "/images/oscar.png");
+        setScaledIcon(jLabel10, "/images/ram.png");
+        
     }  
     private void setScaledIcon(javax.swing.JLabel label, String resourcePath) {
         try {
@@ -151,6 +158,7 @@ public class homepage extends javax.swing.JFrame {
     public void setUserGreeting(String username) {
         user_greet.setText("Hello, " + username + "! 👋");
     }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -489,16 +497,46 @@ public class homepage extends javax.swing.JFrame {
         jLabel8.setText("Employees");
 
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/sridhar.png"))); // NOI18N
+        jLabel5.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel5MouseClicked(evt);
+            }
+        });
 
         jLabel6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/sachin.png"))); // NOI18N
+        jLabel6.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel6MouseClicked(evt);
+            }
+        });
 
         jLabel9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/rabin.png"))); // NOI18N
+        jLabel9.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel9MouseClicked(evt);
+            }
+        });
 
         jLabel11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/sanskar.png"))); // NOI18N
+        jLabel11.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel11MouseClicked(evt);
+            }
+        });
 
         jLabel13.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/oscar.png"))); // NOI18N
+        jLabel13.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel13MouseClicked(evt);
+            }
+        });
 
         jLabel10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/ram.png"))); // NOI18N
+        jLabel10.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel10MouseClicked(evt);
+            }
+        });
 
         jLabel14.setText("Sridhar Niraula");
 
@@ -543,7 +581,7 @@ public class homepage extends javax.swing.JFrame {
                             .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(jPanel22Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel22Layout.createSequentialGroup()
                 .addGap(77, 77, 77)
                 .addComponent(jLabel25)
                 .addGap(208, 208, 208)
@@ -1160,6 +1198,30 @@ public class homepage extends javax.swing.JFrame {
         loadNextPendingLeaveToApproveSection();
     }//GEN-LAST:event_jButton11ActionPerformed
 
+    private void jLabel5MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel5MouseClicked
+        openAssignDialogForEmployee("sridhar1");
+    }//GEN-LAST:event_jLabel5MouseClicked
+
+    private void jLabel6MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel6MouseClicked
+        openAssignDialogForEmployee("sachin1");
+    }//GEN-LAST:event_jLabel6MouseClicked
+
+    private void jLabel9MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel9MouseClicked
+        openAssignDialogForEmployee("rabin1");
+    }//GEN-LAST:event_jLabel9MouseClicked
+
+    private void jLabel11MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel11MouseClicked
+        openAssignDialogForEmployee("sanskar1");
+    }//GEN-LAST:event_jLabel11MouseClicked
+
+    private void jLabel13MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel13MouseClicked
+        openAssignDialogForEmployee("Oscar");
+    }//GEN-LAST:event_jLabel13MouseClicked
+
+    private void jLabel10MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel10MouseClicked
+        openAssignDialogForEmployee("ram1");
+    }//GEN-LAST:event_jLabel10MouseClicked
+
     private void jButton10ActionPerformed(java.awt.event.ActionEvent evt) {
         // APPROVE: update status/remarks but keep the request in the table
         if (currentPendingLeave == null) {
@@ -1344,5 +1406,27 @@ public String getEmpEmployeeType() {
     return Employee_Type.getSelectedItem().toString().trim();
 }
 
+/**
+ * Open the AssignTaskDialog for a specific employee username and
+ * save tasks + weekly remarks into AdminModel if the user clicked Save.
+ * NetBeans-GUI-safe: no changes to generated initComponents.
+ */
+public void openAssignDialogForEmployee(String username) {
+    java.awt.Frame parent = (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(this);
+    AssignTaskDialog dlg = new AssignTaskDialog(parent, true);
+    dlg.setEmployee(username);
+
+    // Prefill from AdminModel (if any existing data)
+    dlg.loadExistingData(adminModel);
+
+    dlg.setLocationRelativeTo(this);
+    dlg.setVisible(true);
+
+    if (dlg.isSaved()) {
+        java.util.List<String> tasks = dlg.getTasks();
+        String remarks = dlg.getWeeklyRemarks();
+        AdminModel.saveTasksAndRemarks(username, tasks, remarks);
+    }
+}
 }
 
